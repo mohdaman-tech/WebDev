@@ -1,2 +1,2 @@
-# LetsUpgrade_HTML-CSS
-This contains Daily Assignments of Let's Upgrade HTML &amp;CSS Zero to Hero Course
+# B.Tech Projects
+Uploading Projects made by me during my Btech (2019-23)
