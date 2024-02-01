@@ -1,5 +1,8 @@
+#To create relational tables
 from prettytable import PrettyTable
+#Heading
 print(r''' MY TODO LIST ''')
+#Tasks to perform
 print('''\n1.Enter ADD to add new task.
 2.Enter DEL to delete a task.
 3.Enter UPDATE to update task-list.
