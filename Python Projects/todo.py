@@ -1,3 +1,4 @@
+from prettytable import PrettyTable
 print(r''' MY TODO LIST ''')
 print('''\n1.Enter ADD to add new task.
 2.Enter DEL to delete a task.
