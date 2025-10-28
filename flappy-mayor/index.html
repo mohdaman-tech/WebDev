@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>NYC Flap Game</title>
+  <style>
+    body { 
+      background: #001f3f; 
+      color: white; 
+      text-align: center; 
+      font-family: Arial; 
+      margin: 0; 
+      padding: 2rem;
+    }
+    h1 { color: #FFD700; margin-bottom: 1rem; }
+    .btn {
+      padding: 1rem 1.5rem;
+      margin: 1rem;
+      border: none;
+      border-radius: 50px;
+      color: white;
+      font-weight: bold;
+      font-size: 1.1rem;
+      cursor: pointer;
+      min-width: 180px;
+    }
+    .mamdani { background: #FF4136; }
+    .cuomo   { background: #0074D9; }
+    .sliwa   { background: #2ECC40; }
+    .btn:hover { transform: scale(1.05); }
+
+    #gameCanvas {
+      background: linear-gradient(#001f3f, #0074D9);
+      margin: 2rem auto;
+      display: block;
+      border: 3px solid #FFD700;
+      width: 400px;
+      height: 600px;
+    }
+    .screen { display: none; }
+    .active { display: block; }
+  </style>
+</head>
+<body>
+
+  <!-- Character Select -->
+  <div id="char-select" class="screen active">
+    <h1>NYC Mayor Flap 2025</h1>
+    <p>Polls Oct 28: Mamdani leads by 10pts!</p>
+    <div style="margin-top: 3rem;">
+      <button class="btn mamdani" onclick="startGame(0)">Zohran Mamdani<br><small>Socialist Power-Flaps!</small></button>
+      <button class="btn cuomo"   onclick="startGame(1)">Andrew Cuomo<br><small>Comeback Shields!</small></button>
+      <button class="btn sliwa"   onclick="startGame(2)">Curtis Sliwa<br><small>Vigilante Dodges!</small></button>
+    </div>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="game-screen" class="screen">
+    <canvas id="gameCanvas" width="400" height="600"></canvas>
+    <p style="margin-top: 1rem;">Step 4: Canvas + Bird ready!</p>
+  </div>
+
+<script>
+  function startGame(char) {
+    document.getElementById('char-select').classList.remove('active');
+    document.getElementById('game-screen').classList.add('active');
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let bird = { x: 100, y: 300 };
+    let pipes = [];
+    let frame = 0;
+
+    function spawnPipe() {
+      const gap = 150;
+      const height = Math.random() * 300 + 100;
+      pipes.push({
+        x: 400,
+        top: height,
+        bottom: height + gap,
+        passed: false
+      });
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Ground
+      ctx.fillStyle = '#2ECC40';
+      ctx.fillRect(0, 550, 400, 50);
+
+      // Pipes
+      ctx.fillStyle = '#555';
+      pipes.forEach(pipe => {
+        // Top pipe
+        ctx.fillRect(pipe.x, 0, 60, pipe.top);
+        // Bottom pipe
+        ctx.fillRect(pipe.x, pipe.bottom, 60, 600 - pipe.bottom);
+      });
+
+      // Bird
+      ctx.fillStyle = '#FF4136';
+      ctx.beginPath();
+      ctx.arc(bird.x, bird.y, 25, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Move pipes
+      pipes.forEach(pipe => pipe.x -= 2);
+      pipes = pipes.filter(pipe => pipe.x > -60);
+
+      // Spawn new pipe every 120 frames
+      if (frame % 120 === 0) spawnPipe();
+      frame++;
+
+      requestAnimationFrame(draw);
+    }
+
+    spawnPipe(); // First pipe
+    draw();
+  }
+</script>
+
+</body>
+</html>
