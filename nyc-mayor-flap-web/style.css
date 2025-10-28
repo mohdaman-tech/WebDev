@@ -1,0 +1,41 @@
+/* Reset & Base – Optimized for speed */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Arial', sans-serif; background: linear-gradient(to bottom, #001f3f, #0074D9); color: #fff; overflow-x: hidden; }
+
+/* Responsive Grid – Mobile first */
+@media (max-width: 768px) { body { font-size: 14px; } #gameCanvas { width: 100vw; height: 100vh; } }
+@media (min-width: 769px) { #gameCanvas { width: 400px; height: 600px; margin: auto; } }
+
+/* Eye-Catching Header – NYC Neon */
+header { text-align: center; padding: 1rem; background: rgba(0,0,0,0.5); animation: glow 2s infinite alternate; }
+@keyframes glow { 0% { box-shadow: 0 0 5px #FFD700; } 100% { box-shadow: 0 0 20px #FF4136; } }
+header h1 { font-size: 2rem; color: #FFD700; text-shadow: 0 0 10px #FF4136; }
+header p { font-style: italic; }
+
+/* Character Select – Funny Cards */
+#char-select { display: flex; flex-direction: column; align-items: center; padding: 2rem; }
+.candidates { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; }
+.candidate { padding: 1rem; border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; min-width: 150px; }
+.candidate:hover { transform: scale(1.1); box-shadow: 0 5px 15px rgba(255,255,255,0.3); }
+.mamdani { background: #FF4136; } .cuomo { background: #0074D9; } .sliwa { background: #2ECC40; }
+
+/* Game Screen – Immersive */
+.screen { min-height: 100vh; display: none; justify-content: center; align-items: center; }
+.screen.active { display: flex; flex-direction: column; }
+#ui { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 10; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 5px; }
+
+/* Animations – Fun Particles */
+.particle { position: absolute; width: 5px; height: 5px; background: #FFD700; border-radius: 50%; pointer-events: none; animation: explode 1s ease-out forwards; }
+@keyframes explode { 0% { opacity: 1; transform: scale(0); } 100% { opacity: 0; transform: scale(1) translateY(-50px); } }
+
+/* Meme Death – Hilarious Overlay */
+#gameOver { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.9); padding: 2rem; border-radius: 10px; text-align: center; display: none; }
+#gameOver h2 { color: #FF4136; animation: shake 0.5s; }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+/* Footer – Marketing Links */
+footer { text-align: center; padding: 1rem; background: rgba(0,0,0,0.5); }
+footer a { color: #FFD700; text-decoration: none; }
+
+/* AdSense Styling – Non-Intrusive */
+.adsbygoogle { margin: 1rem auto; max-width: 100%; }
