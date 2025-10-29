@@ -2,270 +2,291 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>NYC Flap Game</title>
+  <title>NYC Flap — Step 7 (fixed collision)</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
-    /* --- Page / background --- */
-    :root {
-      --gold: #FFD700;
-      --dark-blue: #001f3f;
-      --mid-blue: #0074D9;
-      --ground-green: #2ECC40;
+    :root{--gold:#FFD700;--dark-blue:#001f3f;--mid-blue:#0074D9;--ground:#2ECC40}
+    html,body{height:100%;margin:0;font-family:Arial,Helvetica,sans-serif;-webkit-font-smoothing:antialiased}
+    body{
+      background-color:var(--dark-blue);
+      background-image:linear-gradient(rgba(0,0,0,0.18),rgba(0,0,0,0.35)), url('assets/nyc-skyline.jpg');
+      background-size:cover;background-position:center bottom;background-repeat:no-repeat;
+      color:#fff;padding:2rem;box-sizing:border-box;text-align:center;
     }
-
-    html, body {
-      height: 100%;
-      margin: 0;
-      font-family: Arial, sans-serif;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      color: #fff;
-    }
-
-    /* Use the NYC skyline image as the page background */
-    body {
-      background-color: var(--dark-blue); /* fallback */
-      background-image:
-        linear-gradient(rgba(0,0,0,0.18), rgba(0,0,0,0.35)),
-        url('assets/nyc-skyline.jpg');
-      background-size: cover;
-      background-position: center bottom;
-      background-repeat: no-repeat;
-      padding: 2rem;
-      box-sizing: border-box;
-      text-align: center;
-    }
-
-    /* content wrapper to keep things centered and above bg overlay */
-    .wrap {
-      max-width: 920px;
-      margin: 0 auto;
-      position: relative;
-      z-index: 2;
-    }
-
-    h1 { color: var(--gold); margin-bottom: 1rem; font-size: 2rem; }
-    p.lead { margin-top: 0.25rem; opacity: 0.95; }
-
-    /* Buttons */
-    .btn {
-      padding: 1rem 1.5rem;
-      margin: 1rem;
-      border: none;
-      border-radius: 50px;
-      color: white;
-      font-weight: bold;
-      font-size: 1.05rem;
-      cursor: pointer;
-      min-width: 180px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.35);
-      transition: transform .12s ease, box-shadow .12s ease;
-    }
-    .btn:active { transform: translateY(1px) scale(0.995); }
-    .btn:hover { transform: scale(1.05); }
-
-    .mamdani { background: #FF4136; }
-    .cuomo   { background: var(--mid-blue); }
-    .sliwa   { background: var(--ground-green); }
-
-    /* Screens */
-    .screen { display: none; }
-    .active { display: block; }
-
-    /* Game canvas area */
-    .game-wrap {
-      display: inline-block;
-      margin: 2rem auto;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-      background: rgba(0,0,0,0.12); /* slight card feel while remaining mostly transparent */
-    }
-
-    #gameCanvas {
-      display: block;
-      width: 400px;   /* visual CSS size */
-      height: 600px;  /* visual CSS size */
-      border: 3px solid var(--gold);
-      background: transparent; /* IMPORTANT: let body background (skyline) show through */
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-      image-rendering: optimizeSpeed;
-    }
-
-    /* HUD inside the game area (overlaid, but simple) */
-    .game-hud {
-      position: relative;
-      margin-top: 0.75rem;
-      color: #fff;
-      font-weight: 600;
-    }
-
-    /* Small screens */
-    @media (max-width: 480px) {
-      #gameCanvas { width: 320px; height: 480px; }
-      .btn { min-width: 140px; padding: 0.85rem 1rem; font-size: 0.95rem; }
-      h1 { font-size: 1.4rem; }
-    }
+    .wrap{max-width:920px;margin:0 auto;position:relative;z-index:2}
+    h1{color:var(--gold);margin-bottom:.25rem;font-size:2rem}
+    p.lead{opacity:.95;margin-top:0}
+    .btn{padding:1rem 1.5rem;margin:1rem;border:none;border-radius:50px;color:#fff;font-weight:700;font-size:1.05rem;cursor:pointer;min-width:180px;box-shadow:0 6px 18px rgba(0,0,0,.35);transition:transform .12s}
+    .btn:active{transform:translateY(1px) scale(.995)} .btn:hover{transform:scale(1.05)}
+    .mamdani{background:#FF4136} .cuomo{background:var(--mid-blue)} .sliwa{background:var(--ground)}
+    .screen{display:none} .active{display:block}
+    .game-wrap{display:inline-block;margin:2rem auto;border-radius:12px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.6);background:rgba(0,0,0,.12)}
+    #gameCanvas{display:block;width:400px;height:600px;border:3px solid var(--gold);background:transparent;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+    .game-hud{position:relative;margin-top:.5rem;color:#fff;font-weight:700}
+    .overlay{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:40;background:rgba(0,0,0,0.6);padding:18px;border-radius:12px;display:none;color:#fff;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+    .overlay.show{display:block}
+    .overlay button{margin-top:10px;padding:.6rem 1rem;border-radius:8px;border:none;cursor:pointer;font-weight:700}
+    @media(max-width:480px){#gameCanvas{width:320px;height:480px}.btn{min-width:140px;padding:.85rem 1rem;font-size:.95rem}h1{font-size:1.4rem}}
   </style>
 </head>
 <body>
-
   <div class="wrap">
-    <!-- Character Select -->
     <div id="char-select" class="screen active">
       <h1>NYC Mayor Flap 2025</h1>
-      <p class="lead">Polls Oct 28: Mamdani leads by 10pts!</p>
-      <div style="margin-top: 3rem;">
+      <p class="lead">Pick your mayor — then flap!</p>
+      <div style="margin-top:2.5rem">
         <button class="btn mamdani" onclick="startGame(0)">
-          Zohran Mamdani<br><small style="font-weight:600; opacity:0.9">Socialist Power-Flaps!</small>
+          Zohran Mamdani<br><small style="font-weight:600;opacity:.9">Socialist Power-Flaps!</small>
         </button>
         <button class="btn cuomo" onclick="startGame(1)">
-          Andrew Cuomo<br><small style="font-weight:600; opacity:0.9">Comeback Shields!</small>
+          Andrew Cuomo<br><small style="font-weight:600;opacity:.9">Comeback Shields!</small>
         </button>
         <button class="btn sliwa" onclick="startGame(2)">
-          Curtis Sliwa<br><small style="font-weight:600; opacity:0.9">Vigilante Dodges!</small>
+          Curtis Sliwa<br><small style="font-weight:600;opacity:.9">Vigilante Dodges!</small>
         </button>
       </div>
     </div>
 
-    <!-- Game Screen -->
     <div id="game-screen" class="screen">
-      <div class="game-wrap" role="region" aria-label="Game area">
+      <div class="game-wrap" role="region" aria-label="Game area" style="position:relative;">
         <canvas id="gameCanvas" width="400" height="600"></canvas>
+        <div id="overlay" class="overlay">
+          <div id="overlayMsg">Get Ready</div>
+          <button id="overlayBtn">Start</button>
+        </div>
       </div>
+
       <div class="game-hud">
-        <p style="margin: .6rem 0 0;">Step 4: Canvas + Bird ready!</p>
+        <span id="scoreDisplay">Score: 0</span>
+        <span id="bestDisplay" style="margin-left:18px;opacity:.9">Best: 0</span>
       </div>
     </div>
   </div>
 
 <script>
-  function startGame(char) {
-    // Switch screens
-    document.getElementById('char-select').classList.remove('active');
-    document.getElementById('game-screen').classList.add('active');
+/* Fixed collision logic — treat bird as circle and test circle-vs-rect.
+   Keep coordinates and sizes in CSS pixels for consistent behavior.
+*/
 
-    const canvas = document.getElementById('gameCanvas');
-    // get a 2D context with alpha enabled so background shows through
-    const ctx = canvas.getContext('2d', { alpha: true });
+function startGame(char) {
+  document.getElementById('char-select').classList.remove('active');
+  document.getElementById('game-screen').classList.add('active');
 
-    // Maintain logical drawing size regardless of CSS scaling
-    function setBackingStoreSize() {
-      const dpr = window.devicePixelRatio || 1;
-      const cssW = parseInt(getComputedStyle(canvas).width, 10);
-      const cssH = parseInt(getComputedStyle(canvas).height, 10);
-      if (canvas.width !== cssW * dpr || canvas.height !== cssH * dpr) {
-        canvas.width = cssW * dpr;
-        canvas.height = cssH * dpr;
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d', { alpha: true });
+
+  function setCanvasSize() {
+    const dpr = window.devicePixelRatio || 1;
+    const cssW = parseInt(getComputedStyle(canvas).width, 10);
+    const cssH = parseInt(getComputedStyle(canvas).height, 10);
+    if (canvas.width !== cssW * dpr || canvas.height !== cssH * dpr) {
+      canvas.width = cssW * dpr;
+      canvas.height = cssH * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+  }
+  setCanvasSize();
+  window.addEventListener('resize', setCanvasSize);
+
+  // constants (CSS px)
+  const GRAVITY = 0.45;
+  const FLAP_VELOCITY = -8.8;
+  const MAX_DROP_ANGLE = Math.PI * 0.6;
+  const MAX_RISE_ANGLE = -Math.PI * 0.35;
+  const GROUND_HEIGHT = 50;
+  const PIPE_SPEED = 2.2;
+  const PIPE_WIDTH = 90; // visual width used when drawing
+
+  // state
+  let score = 0;
+  let best = Number(localStorage.getItem('nycFlapBest') || 0);
+  let running = false;
+  let gameOver = false;
+
+  // bird (CSS px coords)
+  const bird = { x: 100, y: 300, vy: 0, width: 80, height: 80, rotation: 0 };
+
+  const pipes = []; // each: { x (center), top, bottom, passed }
+  let frame = 0;
+
+  // images
+  const politicianImg = new Image();
+  politicianImg.src = `assets/${char === 0 ? 'mamdani' : char === 1 ? 'cuomo' : 'sliwa'}.png`;
+  const buildingImg = new Image();
+  buildingImg.src = 'assets/building.png';
+
+  // UI
+  const overlay = document.getElementById('overlay');
+  const overlayMsg = document.getElementById('overlayMsg');
+  const overlayBtn = document.getElementById('overlayBtn');
+  const scoreDisplay = document.getElementById('scoreDisplay');
+  const bestDisplay = document.getElementById('bestDisplay');
+  bestDisplay.textContent = 'Best: ' + best;
+
+  function showOverlay(text, btnText) { overlayMsg.textContent = text; overlayBtn.textContent = btnText; overlay.classList.add('show'); }
+  function hideOverlay() { overlay.classList.remove('show'); }
+
+  overlayBtn.onclick = () => {
+    if (!running && !gameOver) { hideOverlay(); running = true; return; }
+    if (gameOver) window.location.reload();
+  };
+
+  function flap() { if (gameOver) return; bird.vy = FLAP_VELOCITY; running = true; }
+
+  canvas.addEventListener('pointerdown', (e) => { e.preventDefault(); if (!running && !gameOver) { hideOverlay(); running = true; return; } flap(); }, { passive:false });
+  window.addEventListener('keydown', (e) => { if (e.code === 'Space') { e.preventDefault(); if (!running && !gameOver) { hideOverlay(); running = true; return; } flap(); } if (e.code === 'KeyR' && gameOver) window.location.reload(); });
+
+  // spawn using CSS coords
+  function spawnPipe() {
+    const cssW = parseInt(getComputedStyle(canvas).width, 10);
+    const cssH = parseInt(getComputedStyle(canvas).height, 10);
+    const gap = 180;
+    const minTop = 60;
+    const maxTop = cssH - gap - GROUND_HEIGHT - 60;
+    const top = Math.floor(Math.random() * (maxTop - minTop + 1)) + minTop;
+    const x = cssW + 40;
+    pipes.push({ x, top, bottom: top + gap, passed: false });
+  }
+
+  // --- collision helpers ---
+  // clamp helper
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+  // circle-rect collision: circle(cx,cy,r) vs rect(rx,ry,rw,rh)
+  function circleRectCollision(cx, cy, r, rx, ry, rw, rh) {
+    // find nearest point on rect to circle center
+    const nearestX = clamp(cx, rx, rx + rw);
+    const nearestY = clamp(cy, ry, ry + rh);
+    const dx = cx - nearestX;
+    const dy = cy - nearestY;
+    return (dx * dx + dy * dy) <= r * r;
+  }
+
+  // check collisions using circle vs top/bottom pipe rects and ground
+  function checkCollision() {
+    const cssW = parseInt(getComputedStyle(canvas).width, 10);
+    const cssH = parseInt(getComputedStyle(canvas).height, 10);
+    const radius = Math.min(bird.width, bird.height) * 0.42; // circle radius approx inside sprite
+
+    // ground
+    if (bird.y + radius >= cssH - GROUND_HEIGHT) return true;
+    if (bird.y - radius <= 0) return true;
+
+    // check each pipe; pipe rectangle uses center x +/- PIPE_WIDTH/2
+    for (let p of pipes) {
+      const left = p.x - PIPE_WIDTH / 2;
+      const right = p.x + PIPE_WIDTH / 2;
+
+      // top pipe rect: x = left, y = 0, w = PIPE_WIDTH, h = p.top
+      if (circleRectCollision(bird.x, bird.y, radius, left, 0, PIPE_WIDTH, p.top)) return true;
+
+      // bottom pipe rect: x = left, y = p.bottom, w = PIPE_WIDTH, h = cssH - p.bottom - GROUND_HEIGHT
+      const bottomH = cssH - p.bottom - GROUND_HEIGHT;
+      if (bottomH > 0) {
+        if (circleRectCollision(bird.x, bird.y, radius, left, p.bottom, PIPE_WIDTH, bottomH)) return true;
       }
     }
-    setBackingStoreSize();
-    window.addEventListener('resize', setBackingStoreSize);
+    return false;
+  }
 
-    // Game state (minimal for now)
-    let bird = { x: 100, y: 300 };
-    let pipes = [];
-    let frame = 0;
+  // draw loop
+  function draw() {
+    setCanvasSize();
+    const cssW = parseInt(getComputedStyle(canvas).width, 10);
+    const cssH = parseInt(getComputedStyle(canvas).height, 10);
 
-    // Load images
-    const politicianImg = new Image();
-    const buildingImg = new Image();
+    ctx.clearRect(0, 0, cssW, cssH);
 
-    politicianImg.src = `assets/${char === 0 ? 'mamdani' : char === 1 ? 'cuomo' : 'sliwa'}.png`;
-    buildingImg.src = 'assets/building.png';
+    // ground stripe
+    ctx.fillStyle = '#2ECC40';
+    ctx.fillRect(0, cssH - GROUND_HEIGHT, cssW, GROUND_HEIGHT);
 
-    function spawnPipe() {
-      const gap = 180;
-      const height = Math.random() * 220 + 100;
-      pipes.push({
-        x: canvas.width / (window.devicePixelRatio || 1), // use CSS-scaled coords
-        top: height,
-        bottom: height + gap
-      });
-    }
-
-    function draw() {
-      // Clear canvas but keep transparency (so skyline remains visible)
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Ground (drawn as a simple stripe along bottom)
-      ctx.fillStyle = '#2ECC40';
-      // Use CSS coordinates for readability: divide by dpr when needed
-      const cssHeight = parseInt(getComputedStyle(canvas).height, 10);
-      const cssWidth = parseInt(getComputedStyle(canvas).width, 10);
-      ctx.fillRect(0, cssHeight - 50, cssWidth, 50);
-
-      // Draw buildings / pipes
-      pipes.forEach(pipe => {
-        if (buildingImg.complete && buildingImg.naturalWidth) {
-          const buildingWidth = 90;
-          // Bottom building
-          const bottomHeight = cssHeight - pipe.bottom;
-          if (bottomHeight > 0) {
-            // drawImage with source cropping if image is taller than bottomHeight
-            const sW = buildingImg.width;
-            const sH = Math.min(buildingImg.height, bottomHeight);
-            const sY = buildingImg.height - sH;
-            ctx.drawImage(
-              buildingImg,
-              0, sY,
-              sW, sH,
-              pipe.x - buildingWidth/2, pipe.bottom,
-              buildingWidth, bottomHeight
-            );
-          }
-          // Top building
-          const topHeight = pipe.top;
-          if (topHeight > 0) {
-            const sW = buildingImg.width;
-            const sH = Math.min(buildingImg.height, topHeight);
-            const sY = buildingImg.height - sH;
-            ctx.drawImage(
-              buildingImg,
-              0, sY,
-              sW, sH,
-              pipe.x - buildingWidth/2, 0,
-              buildingWidth, topHeight
-            );
-          }
-        } else {
-          // fallback rectangles if image not yet loaded
-          ctx.fillStyle = '#555';
-          ctx.fillRect(pipe.x - 30, 0, 60, pipe.top);
-          ctx.fillRect(pipe.x - 30, pipe.bottom, 60, cssHeight - pipe.bottom);
+    // draw pipes/buildings
+    for (let i = 0; i < pipes.length; i++) {
+      const p = pipes[i];
+      if (buildingImg.complete && buildingImg.naturalWidth) {
+        // bottom building
+        const bottomHeight = cssH - p.bottom - 0;
+        if (bottomHeight > 0) {
+          const sW = buildingImg.width;
+          const sH = Math.min(buildingImg.height, bottomHeight);
+          const sY = buildingImg.height - sH;
+          ctx.drawImage(buildingImg, 0, sY, sW, sH, p.x - PIPE_WIDTH/2, p.bottom, PIPE_WIDTH, bottomHeight);
         }
-      });
-
-      // Draw politician (bird)
-      if (politicianImg.complete && politicianImg.naturalWidth) {
-        ctx.drawImage(politicianImg, bird.x - 40, bird.y - 40, 80, 80);
+        // top building
+        const topHeight = p.top;
+        if (topHeight > 0) {
+          const sW = buildingImg.width;
+          const sH = Math.min(buildingImg.height, topHeight);
+          const sY = buildingImg.height - sH;
+          ctx.drawImage(buildingImg, 0, sY, sW, sH, p.x - PIPE_WIDTH/2, 0, PIPE_WIDTH, topHeight);
+        }
       } else {
-        ctx.fillStyle = '#FF4136';
-        ctx.beginPath();
-        ctx.arc(bird.x, bird.y, 30, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.fillStyle = '#555';
+        ctx.fillRect(p.x - 30, 0, 60, p.top);
+        ctx.fillRect(p.x - 30, p.bottom, 60, cssH - p.bottom - GROUND_HEIGHT);
       }
+    }
 
-      // Move pipes (simple left movement)
-      pipes.forEach(pipe => pipe.x -= 2);
-      // Remove offscreen pipes (use CSS width)
-      pipes = pipes.filter(pipe => pipe.x > -150);
+    // physics
+    if (running && !gameOver) {
+      bird.vy += GRAVITY;
+      bird.y += bird.vy;
 
+      const t = Math.max(-1, Math.min(1, bird.vy / 12));
+      bird.rotation = t >= 0 ? t * MAX_DROP_ANGLE : t * (-MAX_RISE_ANGLE);
+      if (bird.rotation > MAX_DROP_ANGLE) bird.rotation = MAX_DROP_ANGLE;
+      if (bird.rotation < MAX_RISE_ANGLE) bird.rotation = MAX_RISE_ANGLE;
+    }
+
+    // draw bird (rotated)
+    ctx.save();
+    ctx.translate(bird.x, bird.y);
+    ctx.rotate(bird.rotation);
+    if (politicianImg.complete && politicianImg.naturalWidth) {
+      ctx.drawImage(politicianImg, -bird.width / 2, -bird.height / 2, bird.width, bird.height);
+    } else {
+      ctx.fillStyle = '#FF4136';
+      ctx.beginPath();
+      ctx.arc(0, 0, 30, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // move pipes & scoring
+    if (running && !gameOver) {
+      for (let p of pipes) p.x -= PIPE_SPEED;
+
+      for (let p of pipes) {
+        if (!p.passed && (p.x + PIPE_WIDTH/2) < (bird.x - bird.width/2)) {
+          p.passed = true;
+          score++;
+          scoreDisplay.textContent = 'Score: ' + score;
+          if (score > best) { best = score; bestDisplay.textContent = 'Best: ' + best; localStorage.setItem('nycFlapBest', best); }
+        }
+      }
+      while (pipes.length && pipes[0].x < -200) pipes.shift();
       if (frame % 120 === 0) spawnPipe();
       frame++;
-
-      requestAnimationFrame(draw);
     }
 
-    // Start drawing shortly after images start loading (safe)
-    setTimeout(() => {
-      spawnPipe();
-      draw();
-    }, 300);
-  }
-</script>
+    // collision
+    if (!gameOver && checkCollision()) {
+      gameOver = true;
+      running = false;
+      showOverlay('Game Over — Score: ' + score, 'Restart');
+    }
 
+    // continue loop
+    if (!gameOver || (gameOver && overlay.classList.contains('show'))) {
+      requestAnimationFrame(draw);
+    }
+  }
+
+  showOverlay('Tap / Click / Space to Start', 'Start');
+  setTimeout(() => { if (pipes.length === 0) spawnPipe(); }, 300);
+  requestAnimationFrame(draw);
+}
+</script>
 </body>
 </html>
