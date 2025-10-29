@@ -1,17 +1,53 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="utf-8" />
   <title>NYC Flap Game</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
-    body { 
-      background: #001f3f; 
-      color: white; 
-      text-align: center; 
-      font-family: Arial; 
-      margin: 0; 
-      padding: 2rem;
+    /* --- Page / background --- */
+    :root {
+      --gold: #FFD700;
+      --dark-blue: #001f3f;
+      --mid-blue: #0074D9;
+      --ground-green: #2ECC40;
     }
-    h1 { color: #FFD700; margin-bottom: 1rem; }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      color: #fff;
+    }
+
+    /* Use the NYC skyline image as the page background */
+    body {
+      background-color: var(--dark-blue); /* fallback */
+      background-image:
+        linear-gradient(rgba(0,0,0,0.18), rgba(0,0,0,0.35)),
+        url('assets/nyc-skyline.jpg');
+      background-size: cover;
+      background-position: center bottom;
+      background-repeat: no-repeat;
+      padding: 2rem;
+      box-sizing: border-box;
+      text-align: center;
+    }
+
+    /* content wrapper to keep things centered and above bg overlay */
+    .wrap {
+      max-width: 920px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 2;
+    }
+
+    h1 { color: var(--gold); margin-bottom: 1rem; font-size: 2rem; }
+    p.lead { margin-top: 0.25rem; opacity: 0.95; }
+
+    /* Buttons */
     .btn {
       padding: 1rem 1.5rem;
       margin: 1rem;
@@ -19,132 +55,203 @@
       border-radius: 50px;
       color: white;
       font-weight: bold;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       cursor: pointer;
       min-width: 180px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+      transition: transform .12s ease, box-shadow .12s ease;
     }
-    .mamdani { background: #FF4136; }
-    .cuomo   { background: #0074D9; }
-    .sliwa   { background: #2ECC40; }
+    .btn:active { transform: translateY(1px) scale(0.995); }
     .btn:hover { transform: scale(1.05); }
 
-    #gameCanvas {
-      background: linear-gradient(#001f3f, #0074D9);
-      margin: 2rem auto;
-      display: block;
-      border: 3px solid #FFD700;
-      width: 400px;
-      height: 600px;
-    }
+    .mamdani { background: #FF4136; }
+    .cuomo   { background: var(--mid-blue); }
+    .sliwa   { background: var(--ground-green); }
+
+    /* Screens */
     .screen { display: none; }
     .active { display: block; }
+
+    /* Game canvas area */
+    .game-wrap {
+      display: inline-block;
+      margin: 2rem auto;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.12); /* slight card feel while remaining mostly transparent */
+    }
+
+    #gameCanvas {
+      display: block;
+      width: 400px;   /* visual CSS size */
+      height: 600px;  /* visual CSS size */
+      border: 3px solid var(--gold);
+      background: transparent; /* IMPORTANT: let body background (skyline) show through */
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      image-rendering: optimizeSpeed;
+    }
+
+    /* HUD inside the game area (overlaid, but simple) */
+    .game-hud {
+      position: relative;
+      margin-top: 0.75rem;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    /* Small screens */
+    @media (max-width: 480px) {
+      #gameCanvas { width: 320px; height: 480px; }
+      .btn { min-width: 140px; padding: 0.85rem 1rem; font-size: 0.95rem; }
+      h1 { font-size: 1.4rem; }
+    }
   </style>
 </head>
 <body>
 
-  <!-- Character Select -->
-  <div id="char-select" class="screen active">
-    <h1>NYC Mayor Flap 2025</h1>
-    <p>Polls Oct 28: Mamdani leads by 10pts!</p>
-    <div style="margin-top: 3rem;">
-      <button class="btn mamdani" onclick="startGame(0)">Zohran Mamdani<br><small>Socialist Power-Flaps!</small></button>
-      <button class="btn cuomo"   onclick="startGame(1)">Andrew Cuomo<br><small>Comeback Shields!</small></button>
-      <button class="btn sliwa"   onclick="startGame(2)">Curtis Sliwa<br><small>Vigilante Dodges!</small></button>
+  <div class="wrap">
+    <!-- Character Select -->
+    <div id="char-select" class="screen active">
+      <h1>NYC Mayor Flap 2025</h1>
+      <p class="lead">Polls Oct 28: Mamdani leads by 10pts!</p>
+      <div style="margin-top: 3rem;">
+        <button class="btn mamdani" onclick="startGame(0)">
+          Zohran Mamdani<br><small style="font-weight:600; opacity:0.9">Socialist Power-Flaps!</small>
+        </button>
+        <button class="btn cuomo" onclick="startGame(1)">
+          Andrew Cuomo<br><small style="font-weight:600; opacity:0.9">Comeback Shields!</small>
+        </button>
+        <button class="btn sliwa" onclick="startGame(2)">
+          Curtis Sliwa<br><small style="font-weight:600; opacity:0.9">Vigilante Dodges!</small>
+        </button>
+      </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="screen">
+      <div class="game-wrap" role="region" aria-label="Game area">
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+      </div>
+      <div class="game-hud">
+        <p style="margin: .6rem 0 0;">Step 4: Canvas + Bird ready!</p>
+      </div>
     </div>
   </div>
 
-  <!-- Game Screen -->
-  <div id="game-screen" class="screen">
-    <canvas id="gameCanvas" width="400" height="600"></canvas>
-    <p style="margin-top: 1rem;">Step 4: Canvas + Bird ready!</p>
-  </div>
-
 <script>
-  let politicianImg, buildingImg;
-
   function startGame(char) {
+    // Switch screens
     document.getElementById('char-select').classList.remove('active');
     document.getElementById('game-screen').classList.add('active');
 
     const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
+    // get a 2D context with alpha enabled so background shows through
+    const ctx = canvas.getContext('2d', { alpha: true });
 
+    // Maintain logical drawing size regardless of CSS scaling
+    function setBackingStoreSize() {
+      const dpr = window.devicePixelRatio || 1;
+      const cssW = parseInt(getComputedStyle(canvas).width, 10);
+      const cssH = parseInt(getComputedStyle(canvas).height, 10);
+      if (canvas.width !== cssW * dpr || canvas.height !== cssH * dpr) {
+        canvas.width = cssW * dpr;
+        canvas.height = cssH * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+    }
+    setBackingStoreSize();
+    window.addEventListener('resize', setBackingStoreSize);
+
+    // Game state (minimal for now)
     let bird = { x: 100, y: 300 };
     let pipes = [];
     let frame = 0;
 
     // Load images
-    politicianImg = new Image();
-    politicianImg.src = `assets/${char === 0 ? 'mamdani' : char === 1 ? 'cuomo' : 'sliwa'}.png`;
+    const politicianImg = new Image();
+    const buildingImg = new Image();
 
-    buildingImg = new Image();
+    politicianImg.src = `assets/${char === 0 ? 'mamdani' : char === 1 ? 'cuomo' : 'sliwa'}.png`;
     buildingImg.src = 'assets/building.png';
 
     function spawnPipe() {
       const gap = 180;
       const height = Math.random() * 220 + 100;
       pipes.push({
-        x: 400,
+        x: canvas.width / (window.devicePixelRatio || 1), // use CSS-scaled coords
         top: height,
-        bottom: height + gap,
-        passed: false
+        bottom: height + gap
       });
     }
 
     function draw() {
+      // Clear canvas but keep transparency (so skyline remains visible)
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Ground
+      // Ground (drawn as a simple stripe along bottom)
       ctx.fillStyle = '#2ECC40';
-      ctx.fillRect(0, 550, 400, 50);
+      // Use CSS coordinates for readability: divide by dpr when needed
+      const cssHeight = parseInt(getComputedStyle(canvas).height, 10);
+      const cssWidth = parseInt(getComputedStyle(canvas).width, 10);
+      ctx.fillRect(0, cssHeight - 50, cssWidth, 50);
 
-      // Draw buildings
+      // Draw buildings / pipes
       pipes.forEach(pipe => {
-        if (buildingImg.complete) {
-          const buildingHeight = 300;
+        if (buildingImg.complete && buildingImg.naturalWidth) {
           const buildingWidth = 90;
-
           // Bottom building
-          const bottomHeight = 600 - pipe.bottom;
+          const bottomHeight = cssHeight - pipe.bottom;
           if (bottomHeight > 0) {
+            // drawImage with source cropping if image is taller than bottomHeight
+            const sW = buildingImg.width;
+            const sH = Math.min(buildingImg.height, bottomHeight);
+            const sY = buildingImg.height - sH;
             ctx.drawImage(
               buildingImg,
-              0, buildingImg.height - bottomHeight,
-              buildingImg.width, bottomHeight,
-              pipe.x - 45, pipe.bottom,
+              0, sY,
+              sW, sH,
+              pipe.x - buildingWidth/2, pipe.bottom,
               buildingWidth, bottomHeight
             );
           }
-
           // Top building
           const topHeight = pipe.top;
           if (topHeight > 0) {
+            const sW = buildingImg.width;
+            const sH = Math.min(buildingImg.height, topHeight);
+            const sY = buildingImg.height - sH;
             ctx.drawImage(
               buildingImg,
-              0, 0,
-              buildingImg.width, topHeight,
-              pipe.x - 45, 0,
+              0, sY,
+              sW, sH,
+              pipe.x - buildingWidth/2, 0,
               buildingWidth, topHeight
             );
           }
         } else {
+          // fallback rectangles if image not yet loaded
           ctx.fillStyle = '#555';
-          ctx.fillRect(pipe.x, 0, 60, pipe.top);
-          ctx.fillRect(pipe.x, pipe.bottom, 60, 600 - pipe.bottom);
+          ctx.fillRect(pipe.x - 30, 0, 60, pipe.top);
+          ctx.fillRect(pipe.x - 30, pipe.bottom, 60, cssHeight - pipe.bottom);
         }
       });
 
-      // Draw politician
-      if (politicianImg.complete) {
+      // Draw politician (bird)
+      if (politicianImg.complete && politicianImg.naturalWidth) {
         ctx.drawImage(politicianImg, bird.x - 40, bird.y - 40, 80, 80);
       } else {
         ctx.fillStyle = '#FF4136';
-        ctx.beginPath(); ctx.arc(bird.x, bird.y, 30, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath();
+        ctx.arc(bird.x, bird.y, 30, 0, Math.PI * 2);
+        ctx.fill();
       }
 
-      // Move pipes
+      // Move pipes (simple left movement)
       pipes.forEach(pipe => pipe.x -= 2);
-      pipes = pipes.filter(pipe => pipe.x > -100);
+      // Remove offscreen pipes (use CSS width)
+      pipes = pipes.filter(pipe => pipe.x > -150);
 
       if (frame % 120 === 0) spawnPipe();
       frame++;
@@ -152,13 +259,11 @@
       requestAnimationFrame(draw);
     }
 
-    const startDrawing = () => {
+    // Start drawing shortly after images start loading (safe)
+    setTimeout(() => {
       spawnPipe();
       draw();
-    };
-
-    politicianImg.onload = buildingImg.onload = startDrawing;
-    setTimeout(startDrawing, 1000);
+    }, 300);
   }
 </script>
 
